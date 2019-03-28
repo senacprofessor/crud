@@ -1,5 +1,7 @@
 $(document).ready(function(){
     const _url = 'http://localhost:3000/alunos';
+
+
     let tabela = $('#tabelacadastro').DataTable({
         ajax:{
             url:_url,
@@ -11,11 +13,10 @@ $(document).ready(function(){
             {"data":"sexo"},
             {
                 "data":null,
-                render: function(data,type, row)
-                {
-                    return '<button class="btn btn-info btn-xs"><i class="fas fa-pen" sytle="color:red"></i>tttt</button>'
+                render: function(data,type,row){
+                    return `<button data-acao='update' data-id='${data.id}' class="btn btn-info btn-xs">Editar</button> 
+                    <button data-acao='delete' data-id='${data.id}' class="btn btn-danger btn-xs">Excluir</button>`
                 }
-                // defaultContent:'<span><i class="fas fa-pen"></i></span>'
             }
         ],
         columnDefs:[
@@ -33,21 +34,74 @@ $(document).ready(function(){
         }
     });
     
+
+    $('#tabelacadastro tbody').on('click','button',function(){
+       let data = tabela.row($(this).parents('tr')).data();
+       let acao = $(this).data('acao');
+       $('#cadastrar').attr('data-id',data.id);
+
+       if(acao =='update')
+       {
+           $('#cadastrar').text('ALTERAR');
+           $('#cadastrar').attr('data-acao','update');
+           $('#nome').val(data.nome);
+           $('#sexo').val(data.sexo);
+       }
+       else if(acao == 'delete')
+       {
+           $('#idexcluir').text(data.id);
+           $('#nomeexcluir').text(data.nome);
+           $('#sexoexcluir').text(data.sexo);
+           $('#exampleModal').modal('show');
+       }
+
+
+    })
+
     $('#cadastrar').on('click',function(){
-        var nome = $('#nome').val();
-        var sexo = $('#sexo option:selected').val();
+        let _type;
+        let _data;
+        var _nome = $('#nome').val();
+        var _sexo = $('#sexo option:selected').val();
+        let acao = $(this).data('acao');
+        let _id = $(this).attr('data-id');
+        let url_url;
+
+        if(acao == 'update')
+        {
+            _type = 'PUT';
+            _data = {id: _id, nome: _nome, sexo:_sexo};
+            url_url = `${_url}/${_id}`;
+
+        }
+        else if(acao == 'delete')
+        {
+            _type = "DELETE";
+        }
+        else if(acao == 'insert')
+        {
+            _type = "POST";
+            _data = { nome: _nome, sexo:_sexo};
+        }
 
         $.ajax({
-            type:"POST",
-            url: `${_url}`,
+            type:_type,
+            url: url_url,
             dataType:"json",
-            data:{nome: nome, sexo: sexo},
+            data: _data,
             success: function(data){
-                if(data.id != null)
-                tabela.ajax.reload();
-            },
-            error:function(data){
+                console.log(data);
 
+                if(data.id != null)
+                {
+                    tabela.ajax.reload();
+                    $('#nome').val('');
+                    $('#sexo').val('M');
+                }
+               
+            },
+            error:function(error){
+                console.log(error)
             }
         })
     })
