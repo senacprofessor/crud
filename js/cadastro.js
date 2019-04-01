@@ -1,6 +1,6 @@
 $(document).ready(function(){
     const _url = 'http://localhost:3000/alunos';
-
+    
 
     let tabela = $('#tabelacadastro').DataTable({
         ajax:{
@@ -25,7 +25,12 @@ $(document).ready(function(){
                 width: "30px"
             },
             {
+                targets:2,
+                width: "30px"
+            },
+            {
                 targets:3,
+                className: "text-right"
             }
         ],
         language:{
@@ -50,6 +55,7 @@ $(document).ready(function(){
        else if(acao == 'delete')
        {
            $('#idexcluir').text(data.id);
+           $('#idexcluir').attr('value',data.id);
            $('#nomeexcluir').text(data.nome);
            $('#sexoexcluir').text(data.sexo);
            $('#exampleModal').modal('show');
@@ -63,7 +69,7 @@ $(document).ready(function(){
         let _data;
         var _nome = $('#nome').val();
         var _sexo = $('#sexo option:selected').val();
-        let acao = $(this).data('acao');
+        let acao = $(this).attr('data-acao');
         let _id = $(this).attr('data-id');
         let url_url;
 
@@ -82,6 +88,7 @@ $(document).ready(function(){
         {
             _type = "POST";
             _data = { nome: _nome, sexo:_sexo};
+            url_url = _url;
         }
 
         $.ajax({
@@ -97,11 +104,32 @@ $(document).ready(function(){
                     tabela.ajax.reload();
                     $('#nome').val('');
                     $('#sexo').val('M');
+                    $('#cadastrar').text('CADASTRAR');
+                    $('#cadastrar').attr('data-acao','insert');
+                    $.notify('Cadastro realizado com sucesso!',{type:"success"});
+                   
                 }
                
             },
             error:function(error){
                 console.log(error)
+            }
+        })
+    })
+
+    $('#btnExcluir').on("click",function(){
+        let id = $('#idexcluir').attr('value');
+
+        $.ajax({
+            type: "DELETE",
+            url: `${_url}/${id}`,
+            dataType : "json",
+            success:function(data){
+                tabela.ajax.reload();
+                $('#exampleModal').modal('hide');
+            },
+            error:function(erro){
+                console.log('Errou')
             }
         })
     })
